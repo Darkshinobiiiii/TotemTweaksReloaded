@@ -1,7 +1,6 @@
 package net.racialgamer.totemtweaks.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import com.terraformersmc.modmenu.ModMenu;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.GameRenderer;
@@ -9,7 +8,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.racialgamer.totemtweaks.config.Gui;
-import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -83,7 +82,7 @@ public class GameRendererMixin {
     private int getTotemCount() {
         int count = 0;
         assert MinecraftClient.getInstance().player != null;
-        for (ItemStack stack : MinecraftClient.getInstance().player.getInventory().main) {
+        for (ItemStack stack : MinecraftClient.getInstance().player.getInventory().getMainStacks()) {
             if (stack.getItem() == Items.TOTEM_OF_UNDYING) {
                 count += stack.getCount();
             }
@@ -127,18 +126,18 @@ public class GameRendererMixin {
     }
 
 
-    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionf;)V", ordinal = 0))
-    private boolean wrapRotationY(MatrixStack matrixStack, Quaternionf rotation) {
+    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 0))
+    private boolean wrapRotationY(MatrixStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
     }
 
-    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionf;)V", ordinal = 1))
-    private boolean wrapRotationX(MatrixStack matrixStack, Quaternionf rotation) {
+    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 1))
+    private boolean wrapRotationX(MatrixStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
     }
 
-    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionf;)V", ordinal = 2))
-    private boolean wrapRotationZ(MatrixStack matrixStack, Quaternionf rotation) {
+    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 2))
+    private boolean wrapRotationZ(MatrixStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
     }
 }
