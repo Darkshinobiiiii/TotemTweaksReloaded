@@ -36,9 +36,8 @@ public abstract class HeldItemRenderMixin {
     private void modifyEquipOffset(MatrixStack matrices, Arm arm, float equipProgress, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         ItemStack itemStack = arm == client.player.getMainArm() ? client.player.getMainHandStack() : client.player.getOffHandStack();
-        if (itemStack.getItem() == Items.TOTEM_OF_UNDYING && Gui.get().disableEquipAnimation) {
-            int i = arm == Arm.RIGHT ? 1 : -1;
-            matrices.translate((float)i * 0.56F, -0.52F, -0.72F);
+        if (Gui.get().disableEquipAnimation && itemStack.getItem() == Items.TOTEM_OF_UNDYING) {
+            matrices.translate((arm == Arm.RIGHT ? 0.56F : -0.56F), -0.52F, -0.72F);
             ci.cancel();
         }
     }

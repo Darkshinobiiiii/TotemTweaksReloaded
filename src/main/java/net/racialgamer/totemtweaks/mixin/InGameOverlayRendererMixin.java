@@ -3,7 +3,8 @@ package net.racialgamer.totemtweaks.mixin;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.gui.hud.InGameOverlayRenderer;
+import net.minecraft.client.gui.render.state.GuiRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -19,35 +20,34 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
-@Mixin(GameRenderer.class)
-public class GameRendererMixin {
+@Mixin(InGameOverlayRenderer.class)
+public class InGameOverlayRendererMixin {
 
     @Shadow
     private ItemStack floatingItem;
 
     @Shadow
-    private int floatingItemTimeLeft;
+    private int floatingItemTimer;
 
     @Shadow
-    private float floatingItemWidth;
+    private float floatingItemOffsetX;
 
     @Shadow
-    private float floatingItemHeight;
+    private float floatingItemOffsetY;
 
     @Unique
     private int overlayTimeLeft;
 
-    @Inject(method = "showFloatingItem", at = @At("TAIL"))
-    public void InjectShowFloatingItem(ItemStack floatingItem, CallbackInfo ci) {
-        this.floatingItem = floatingItem;
+    @Inject(method = "tickFloatingItemTimer", at = @At("TAIL"))
+    public void InjectTickFloatingItemTimer(CallbackInfo ci) {
         if (!Gui.get().TotemPopAnimation) {
-            this.floatingItemTimeLeft = 0;
+            this.floatingItemTimer = 0;
         } else {
-            this.floatingItemTimeLeft = Gui.get().animationSpeed;
+            this.floatingItemTimer = Gui.get().animationSpeed;
         }
         if (Gui.get().lockRotationPosition) {
-            this.floatingItemWidth = 0;
-            this.floatingItemHeight = 0;
+            this.floatingItemOffsetX = 0;
+            this.floatingItemOffsetY = 0;
         }
         if (Gui.get().showOverlay) {
             this.overlayTimeLeft = Gui.get().animationSpeed;
@@ -55,7 +55,10 @@ public class GameRendererMixin {
     }
 
     @Inject(method = "renderFloatingItem", at = @At("TAIL"))
-    public void renderFloatingItemWithOverlays(DrawContext context, float tickDelta, CallbackInfo ci) {
+    private void renderFloatingItemWithOverlays(MatrixStack matrices, float tickProgress, CallbackInfo ci) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        DrawContext context = new DrawContext(client, new GuiRenderState());
+
         if (Gui.get().showTotemCount && floatingItem != null && floatingItem.getItem() == Items.TOTEM_OF_UNDYING) {
             int totemCount = getTotemCount();
             String countText = "Totems: " + totemCount;
@@ -74,7 +77,7 @@ public class GameRendererMixin {
             }
         }
         if (Gui.get().showOverlay) {
-            overlayTimeLeft = floatingItemTimeLeft;
+            overlayTimeLeft = floatingItemTimer;
         }
     }
 
@@ -92,7 +95,7 @@ public class GameRendererMixin {
 
     @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 0)
     private int modifyTickRenderfloatingItem(int i) {
-        return Gui.get().animationSpeed - floatingItemTimeLeft;
+        return Gui.get().animationSpeed - floatingItemTimer;
     }
 
     @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 1)
@@ -113,7 +116,7 @@ public class GameRendererMixin {
         return n * Gui.get().popSize;
     }
 
-    @ModifyArgs(method = "renderFloatingItem(Lnet/minecraft/client/gui/DrawContext;F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
+    @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     private void modifyTranslateArgs(Args args) {
         float originalX = args.get(0);
         float originalY = args.get(1);
@@ -141,7 +144,6 @@ public class GameRendererMixin {
         return !Gui.get().disableRotations;
     }
 }
-
 
 
 
