@@ -85,20 +85,6 @@ public class Gui implements ConfigData {
     @ConfigEntry.Category("Size Animation")
     public float maxTotemSize = 1.0f;
 
-    @ConfigEntry.Category("Size Animation")
-    @ConfigEntry.Gui.PrefixText
-    @ConfigEntry.Gui.Tooltip
-    public boolean enableTotemPopSizeChange = false;
-
-    @ConfigEntry.Category("Size Animation")
-    public float totemPopSizeChangeSpeed = 1.0f;
-
-    @ConfigEntry.Category("Size Animation")
-    public float minTotemPopSize = 0.3f;
-
-    @ConfigEntry.Category("Size Animation")
-    public float maxTotemPopSize = 0.9f;
-
     public static Gui get() {
         return getConfigHolder(Gui.class).getConfig();
     }

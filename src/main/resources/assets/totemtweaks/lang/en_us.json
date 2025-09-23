@@ -43,12 +43,5 @@
   "text.autoconfig.totemtweaks.option.enableTotemSizeChange": "Totem Size Animation",
   "text.autoconfig.totemtweaks.option.totemSizeChangeSpeed": "Totem Size Animation Speed",
   "text.autoconfig.totemtweaks.option.minTotemSize": "Minimum Totem Size",
-  "text.autoconfig.totemtweaks.option.maxTotemSize": "Maximum Totem Size",
-
-  "text.autoconfig.totemtweaks.option.enableTotemPopSizeChange.@PrefixText": "Totem Pop Size Animation",
-  "text.autoconfig.totemtweaks.option.enableTotemPopSizeChange.@Tooltip": "A animation of the totem pop growing and shrinking",
-  "text.autoconfig.totemtweaks.option.enableTotemPopSizeChange": "Totem Pop Size Animation",
-  "text.autoconfig.totemtweaks.option.totemPopSizeChangeSpeed": "Totem Pop Animation Speed",
-  "text.autoconfig.totemtweaks.option.minTotemPopSize": "Minimum Totem Pop Size",
-  "text.autoconfig.totemtweaks.option.maxTotemPopSize": "Maximum Totem Pop Size"
+  "text.autoconfig.totemtweaks.option.maxTotemSize": "Maximum Totem Size"
 }

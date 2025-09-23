@@ -2,14 +2,14 @@ package net.racialgamer.totemtweaks.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameOverlayRenderer;
-import net.minecraft.client.gui.render.state.GuiRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.random.Random;
 import net.racialgamer.totemtweaks.config.Gui;
 import org.joml.Quaternionfc;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -26,8 +26,21 @@ public class InGameOverlayRendererMixin {
     @Shadow
     private ItemStack floatingItem;
 
+//    @Shadow
+//    private int floatingItemTimeLeft;
+
     @Shadow
     private int floatingItemTimer;
+
+    @Shadow
+    @Final
+    private MinecraftClient client;
+
+//    @Shadow
+//    private float floatingItemWidth;
+//
+//    @Shadow
+//    private float floatingItemHeight;
 
     @Shadow
     private float floatingItemOffsetX;
@@ -38,9 +51,28 @@ public class InGameOverlayRendererMixin {
     @Unique
     private int overlayTimeLeft;
 
-    @Inject(method = "tickFloatingItemTimer", at = @At("TAIL"))
-    public void InjectTickFloatingItemTimer(CallbackInfo ci) {
-        if (!Gui.get().TotemPopAnimation) {
+
+//    @Inject(method = "showFloatingItem", at = @At("TAIL"))
+//    public void InjectShowFloatingItem(ItemStack floatingItem, CallbackInfo ci) {
+//        this.floatingItem = floatingItem;
+//        if (!Gui.get().TotemPopAnimation) {
+//            this.floatingItemTimeLeft = 0;
+//        } else {
+//            this.floatingItemTimeLeft = Gui.get().animationSpeed;
+//        }
+//        if (Gui.get().lockRotationPosition) {
+//            this.floatingItemWidth = 0;
+//            this.floatingItemHeight = 0;
+//        }
+//        if (Gui.get().showOverlay) {
+//            this.overlayTimeLeft = Gui.get().animationSpeed;
+//        }
+//    }
+
+    // Works?
+    @Inject (method = "setFloatingItem", at = @At("TAIL"))
+    public void InjectSetFloatingItem(ItemStack stack, Random random, CallbackInfo ci) {
+      if (!Gui.get().TotemPopAnimation) {
             this.floatingItemTimer = 0;
         } else {
             this.floatingItemTimer = Gui.get().animationSpeed;
@@ -54,32 +86,29 @@ public class InGameOverlayRendererMixin {
         }
     }
 
-    @Inject(method = "renderFloatingItem", at = @At("TAIL"))
-    private void renderFloatingItemWithOverlays(MatrixStack matrices, float tickProgress, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        DrawContext context = new DrawContext(client, new GuiRenderState());
-
-        if (Gui.get().showTotemCount && floatingItem != null && floatingItem.getItem() == Items.TOTEM_OF_UNDYING) {
-            int totemCount = getTotemCount();
-            String countText = "Totems: " + totemCount;
-            int screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
-            int screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
-            int textWidth = MinecraftClient.getInstance().textRenderer.getWidth(countText);
-            int x = (screenWidth - textWidth) / 2;
-            int y = screenHeight / 2 + 20;
-            context.drawText(MinecraftClient.getInstance().textRenderer, countText, x, y, 0xFFFFFF, true);
-            if (Gui.get().showOverlay && overlayTimeLeft > 0) {
-                int baseColor = Gui.get().overlayColor & 0x00FFFFFF;
-                int alpha = (int) ((Gui.get().overlayOpacity / 255.0) * (overlayTimeLeft / (float) Gui.get().animationSpeed) * 255);
-                int color = baseColor | (alpha << 24);
-                context.fill(0, 0, screenWidth, screenHeight, color);
-                overlayTimeLeft--;
-            }
-        }
-        if (Gui.get().showOverlay) {
-            overlayTimeLeft = floatingItemTimer;
-        }
-    }
+//    @Inject(method = "renderFloatingItem", at = @At("TAIL"))
+//    public void renderFloatingItemWithOverlays(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
+//        if (Gui.get().showTotemCount && floatingItem != null && floatingItem.getItem() == Items.TOTEM_OF_UNDYING) {
+//            int totemCount = getTotemCount();
+//            String countText = "Totems: " + totemCount;
+//            int screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
+//            int screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
+//            int textWidth = MinecraftClient.getInstance().textRenderer.getWidth(countText);
+//            int x = (screenWidth - textWidth) / 2;
+//            int y = screenHeight / 2 + 20;
+//            context.drawText(MinecraftClient.getInstance().textRenderer, countText, x, y, 0xFFFFFF, true);
+//            if (Gui.get().showOverlay && overlayTimeLeft > 0) {
+//                int baseColor = Gui.get().overlayColor & 0x00FFFFFF;
+//                int alpha = (int) ((Gui.get().overlayOpacity / 255.0) * (overlayTimeLeft / (float) Gui.get().animationSpeed) * 255);
+//                int color = baseColor | (alpha << 24);
+//                context.fill(0, 0, screenWidth, screenHeight, color);
+//                overlayTimeLeft--;
+//            }
+//        }
+//        if (Gui.get().showOverlay) {
+//            overlayTimeLeft = floatingItemTimer;
+//        }
+//    }
 
     @Unique
     private int getTotemCount() {
@@ -92,7 +121,7 @@ public class InGameOverlayRendererMixin {
         }
         return count;
     }
-
+// Somehow editing multiple variables at once as size has a correlation with tick speed
     @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 0)
     private int modifyTickRenderfloatingItem(int i) {
         return Gui.get().animationSpeed - floatingItemTimer;
@@ -102,20 +131,24 @@ public class InGameOverlayRendererMixin {
     private float modifyFloatRenderfloatingItem(float f) {
         return f * 40 / Gui.get().animationSpeed;
     }
+// TODO: static size in matrixstack translate
+    @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;scale(FFF)V"))
+    private void modifyScaleArgs(Args args) {
+        float scale = 0.1F;
 
-    @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 8)
-    private float modifySizeRenderfloatingItem(float n) {
-        if (Gui.get().enableTotemPopSizeChange) {
-            float sizeRange = Gui.get().maxTotemPopSize - Gui.get().minTotemPopSize;
-            float size = (float) (Math.sin(System.currentTimeMillis() / 1000.0 * Gui.get().totemPopSizeChangeSpeed) / 2 + 0.5) * sizeRange + Gui.get().minTotemPopSize;
-            return n * size;
-        }
         if (Gui.get().staticSize) {
-            return 225 * Gui.get().popSize;
+            scale = 0.8F * Gui.get().popSize;
+        } else {
+            scale *= Gui.get().popSize;
         }
-        return n * Gui.get().popSize;
+
+        args.set(0, scale);
+        args.set(1, scale);
+        args.set(2, scale);
     }
 
+
+   // Goes offscreen when value isnt 0
     @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     private void modifyTranslateArgs(Args args) {
         float originalX = args.get(0);
@@ -128,7 +161,7 @@ public class InGameOverlayRendererMixin {
         args.set(1, adjustedY);
     }
 
-
+// WORKS DONT TOUCH
     @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 0))
     private boolean wrapRotationY(MatrixStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
@@ -144,6 +177,3 @@ public class InGameOverlayRendererMixin {
         return !Gui.get().disableRotations;
     }
 }
-
-
-
