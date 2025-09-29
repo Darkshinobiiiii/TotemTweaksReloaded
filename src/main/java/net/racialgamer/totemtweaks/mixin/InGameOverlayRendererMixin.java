@@ -26,21 +26,12 @@ public class InGameOverlayRendererMixin {
     @Shadow
     private ItemStack floatingItem;
 
-//    @Shadow
-//    private int floatingItemTimeLeft;
-
     @Shadow
     private int floatingItemTimer;
 
     @Shadow
     @Final
     private MinecraftClient client;
-
-//    @Shadow
-//    private float floatingItemWidth;
-//
-//    @Shadow
-//    private float floatingItemHeight;
 
     @Shadow
     private float floatingItemOffsetX;
@@ -50,24 +41,6 @@ public class InGameOverlayRendererMixin {
 
     @Unique
     private int overlayTimeLeft;
-
-
-//    @Inject(method = "showFloatingItem", at = @At("TAIL"))
-//    public void InjectShowFloatingItem(ItemStack floatingItem, CallbackInfo ci) {
-//        this.floatingItem = floatingItem;
-//        if (!Gui.get().TotemPopAnimation) {
-//            this.floatingItemTimeLeft = 0;
-//        } else {
-//            this.floatingItemTimeLeft = Gui.get().animationSpeed;
-//        }
-//        if (Gui.get().lockRotationPosition) {
-//            this.floatingItemWidth = 0;
-//            this.floatingItemHeight = 0;
-//        }
-//        if (Gui.get().showOverlay) {
-//            this.overlayTimeLeft = Gui.get().animationSpeed;
-//        }
-//    }
 
     // Works?
     @Inject (method = "setFloatingItem", at = @At("TAIL"))
@@ -121,7 +94,7 @@ public class InGameOverlayRendererMixin {
         }
         return count;
     }
-// Somehow editing multiple variables at once as size has a correlation with tick speed
+
     @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 0)
     private int modifyTickRenderfloatingItem(int i) {
         return Gui.get().animationSpeed - floatingItemTimer;
@@ -131,16 +104,20 @@ public class InGameOverlayRendererMixin {
     private float modifyFloatRenderfloatingItem(float f) {
         return f * 40 / Gui.get().animationSpeed;
     }
-// TODO: static size in matrixstack translate
+
+    @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V", ordinal = 0))
+    private void modifyInitialTranslateArgs(Args args) {
+        if (Gui.get().staticSize) {
+            float z = 0F; // -125F - 225F
+            args.set(2, z);
+        }
+    }
+
     @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;scale(FFF)V"))
     private void modifyScaleArgs(Args args) {
-        float scale = 0.1F;
+        float scale = 0.8F;
 
-        if (Gui.get().staticSize) {
-            scale = 0.8F * Gui.get().popSize;
-        } else {
-            scale *= Gui.get().popSize;
-        }
+        scale *= Gui.get().popSize;
 
         args.set(0, scale);
         args.set(1, scale);
@@ -161,7 +138,6 @@ public class InGameOverlayRendererMixin {
         args.set(1, adjustedY);
     }
 
-// WORKS DONT TOUCH
     @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 0))
     private boolean wrapRotationY(MatrixStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;

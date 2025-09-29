@@ -11,10 +11,13 @@ import net.minecraft.util.Arm;
 import net.minecraft.util.Hand;
 import net.racialgamer.totemtweaks.config.Gui;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(HeldItemRenderer.class)
 public abstract class HeldItemRenderMixin {
@@ -32,13 +35,14 @@ public abstract class HeldItemRenderMixin {
         }
     }
 
-    @Inject(method = "applyEquipOffset", at = @At("HEAD"), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
-    private void modifyEquipOffset(MatrixStack matrices, Arm arm, float equipProgress, CallbackInfo ci) {
+    @ModifyArgs(method = "applyEquipOffset", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
+    private void modifyEquipOffset(Args args, Arm arm) {
         MinecraftClient client = MinecraftClient.getInstance();
         ItemStack itemStack = arm == client.player.getMainArm() ? client.player.getMainHandStack() : client.player.getOffHandStack();
         if (Gui.get().disableEquipAnimation && itemStack.getItem() == Items.TOTEM_OF_UNDYING) {
-            matrices.translate((arm == Arm.RIGHT ? 0.56F : -0.56F), -0.52F, -0.72F);
-            ci.cancel();
+            args.set(0, (arm == Arm.RIGHT ? 0.56F : -0.56F));
+            args.set(1, -0.52F);
+            args.set(2, -0.72F);
         }
     }
 }

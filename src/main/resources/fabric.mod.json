@@ -6,11 +6,12 @@
   "name": "Totem Tweaks",
   "description": "Changeable totem sizes and extensive customizability of the pop animation.",
   "authors": [
-    "RacialGamer"
+    "Pathdos"
   ],
   "contact": {
     "homepage": "https://modrinth.com/mod/cpvp",
-    "sources": "https://github.com/RacialGamer/Small-pop"
+    "issues": "https://github.com/eleqz/Totem-Tweaks/issues",
+    "sources": "https://github.com/eleqz/Totem-Tweaks"
   },
 
   "license": "ARR",
@@ -34,7 +35,7 @@
     "fabric-api": "*",
     "modmenu": "*",
     "cloth-config": "*",
-    "minecraft": "~1.21.5",
+    "minecraft": ">=1.21.5",
     "java": ">=21"
   }
 }
