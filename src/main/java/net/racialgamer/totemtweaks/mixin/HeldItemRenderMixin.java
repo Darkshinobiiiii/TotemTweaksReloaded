@@ -36,7 +36,7 @@ public abstract class HeldItemRenderMixin {
     }
 
     @ModifyArgs(method = "applyEquipOffset", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
-    private void modifyEquipOffset(Args args, Arm arm) {
+    private void modifyEquipOffset(Args args, MatrixStack matrices, Arm arm, float equipProgress) {
         MinecraftClient client = MinecraftClient.getInstance();
         ItemStack itemStack = arm == client.player.getMainArm() ? client.player.getMainHandStack() : client.player.getOffHandStack();
         if (Gui.get().disableEquipAnimation && itemStack.getItem() == Items.TOTEM_OF_UNDYING) {

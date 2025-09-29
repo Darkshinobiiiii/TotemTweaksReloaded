@@ -1,11 +1,13 @@
 package net.racialgamer.totemtweaks.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.InGameOverlayRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import net.racialgamer.totemtweaks.config.Gui;
 import org.joml.Quaternionfc;
@@ -19,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
+
 
 @Mixin(InGameOverlayRenderer.class)
 public class InGameOverlayRendererMixin {
@@ -106,7 +109,23 @@ public class InGameOverlayRendererMixin {
     }
 
     @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V", ordinal = 0))
-    private void modifyInitialTranslateArgs(Args args) {
+    private void modifyTranslateArgs(Args args, @Local(ordinal = 5) float k) {
+        float x = args.get(0);
+        float y = args.get(1);
+
+        float screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
+        float screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
+
+        float l = floatingItemOffsetX * (screenWidth / 4);
+        float m = floatingItemOffsetY * (screenHeight / 4);
+        float fixedX = (screenWidth / 2) + l * MathHelper.abs(MathHelper.sin(k * 2.0F));
+        float fixedY = (screenHeight / 2) + m * MathHelper.abs(MathHelper.sin(k * 2.0F));
+        float adjustedX = fixedX + ((Gui.get().xPosition - 50) / 100.0f * screenWidth);
+        float adjustedY = fixedY + ((Gui.get().yPosition - 50) / 100.0f * screenHeight);
+
+        args.set(0, adjustedX);
+        args.set(1, adjustedY);
+
         if (Gui.get().staticSize) {
             float z = 0F; // -125F - 225F
             args.set(2, z);
@@ -124,19 +143,6 @@ public class InGameOverlayRendererMixin {
         args.set(2, scale);
     }
 
-
-   // Goes offscreen when value isnt 0
-    @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
-    private void modifyTranslateArgs(Args args) {
-        float originalX = args.get(0);
-        float originalY = args.get(1);
-        float screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
-        float screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
-        float adjustedX = originalX + ((Gui.get().xPosition - 50) / 100.0f * screenWidth);
-        float adjustedY = originalY + ((Gui.get().yPosition - 50) / 100.0f * screenHeight);
-        args.set(0, adjustedX);
-        args.set(1, adjustedY);
-    }
 
     @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 0))
     private boolean wrapRotationY(MatrixStack matrixStack, Quaternionfc rotation) {
