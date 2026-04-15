@@ -8,9 +8,9 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.pathdos.totemtweaks.config.Gui;
 
 public class TotemTweaks implements ModInitializer {
@@ -37,16 +37,16 @@ public class TotemTweaks implements ModInitializer {
 	}
 
 	private int openConfigScreen(CommandContext<?> context) {
-		MinecraftClient client = MinecraftClient.getInstance();
-		client.send(() -> {
-			client.setScreen(ModMenu.getConfigScreen("totemtweaks", client.currentScreen));
+		Minecraft client = Minecraft.getInstance();
+		client.schedule(() -> {
+			client.setScreen(ModMenu.getConfigScreen("totemtweaks", client.screen));
 		});
 		return Command.SINGLE_SUCCESS;
 	}
 
 	public static void simulatePop() {
-		if (MinecraftClient.getInstance().player != null) {
-			MinecraftClient.getInstance().gameRenderer.showFloatingItem(new ItemStack(Items.TOTEM_OF_UNDYING));
+		if (Minecraft.getInstance().player != null) {
+			Minecraft.getInstance().gameRenderer.displayItemActivation(new ItemStack(Items.TOTEM_OF_UNDYING));
 		}
 	}
 }

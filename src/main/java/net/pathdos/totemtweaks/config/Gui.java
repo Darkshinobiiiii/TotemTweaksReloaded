@@ -41,7 +41,7 @@ public class Gui implements ConfigData {
 //    @ConfigEntry.Gui.Tooltip
 //    public boolean staticSize = false;
 
- /*   @ConfigEntry.Category("Totem Pop")
+    @ConfigEntry.Category("Totem Pop")
     @ConfigEntry.Gui.Tooltip
     @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
     public int xPosition = 50;
@@ -49,7 +49,7 @@ public class Gui implements ConfigData {
     @ConfigEntry.Category("Totem Pop")
     @ConfigEntry.Gui.Tooltip
     @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
-    public int yPosition = 50;*/
+    public int yPosition = 50;
 
 /*    @ConfigEntry.Category("Overlay")
     @ConfigEntry.Gui.PrefixText

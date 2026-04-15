@@ -1,11 +1,15 @@
 package net.pathdos.totemtweaks.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.hud.InGameOverlayRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.random.Random;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ScreenEffectRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
 import net.pathdos.totemtweaks.config.Gui;
 import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Final;
@@ -20,39 +24,39 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 
-@Mixin(InGameOverlayRenderer.class)
-public class InGameOverlayRendererMixin {
+@Mixin(ScreenEffectRenderer.class)
+public class ScreenEffectRendererMixin {
 
     @Shadow
-    private ItemStack floatingItem;
+    private ItemStack itemActivationItem;
 
     @Shadow
-    private int floatingItemTimer;
+    private int itemActivationTicks;
 
     @Shadow
     @Final
-    private MinecraftClient client;
+    private Minecraft minecraft;
 
     @Shadow
-    private float floatingItemOffsetX;
+    private float itemActivationOffX;
 
     @Shadow
-    private float floatingItemOffsetY;
+    private float itemActivationOffY;
 
     @Unique
     private int overlayTimeLeft;
 
     // Works?
-    @Inject (method = "setFloatingItem", at = @At("TAIL"))
-    public void InjectSetFloatingItem(ItemStack stack, Random random, CallbackInfo ci) {
+    @Inject (method = "displayItemActivation", at = @At("TAIL"))
+    public void InjectdisplayItemActivation(ItemStack stack, RandomSource random, CallbackInfo ci) {
       if (!Gui.get().TotemPopAnimation) {
-            this.floatingItemTimer = 0;
+            this.itemActivationTicks = 0;
         } else {
-            this.floatingItemTimer = Gui.get().animationSpeed;
+            this.itemActivationTicks = Gui.get().animationSpeed;
         }
         if (Gui.get().lockRotationPosition) {
-            this.floatingItemOffsetX = 0;
-            this.floatingItemOffsetY = 0;
+            this.itemActivationOffX = 0;
+            this.itemActivationOffY = 0;
         }
     }
 
@@ -91,35 +95,34 @@ public class InGameOverlayRendererMixin {
         return count;
     }*/
 
-    @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 0)
+    @ModifyVariable(method = "renderItemActivationAnimation", at = @At("STORE"), ordinal = 0)
     private int modifyTickRenderfloatingItem(int i) {
-        return Gui.get().animationSpeed - floatingItemTimer;
+        return Gui.get().animationSpeed - itemActivationTicks;
     }
 
-    @ModifyVariable(method = "renderFloatingItem", at = @At("STORE"), ordinal = 1)
+    @ModifyVariable(method = "renderItemActivationAnimation", at = @At("STORE"), ordinal = 1)
     private float modifyFloatRenderfloatingItem(float f) {
         return f * 40 / Gui.get().animationSpeed;
     }
 
-    // Changes different origin point for totem pop then oldr version
-/*    @Inject(
-            method = "renderFloatingItem",
+    @Inject(
+            method = "renderItemActivationAnimation",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/util/math/MatrixStack;push()V",
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V",
                     ordinal = 0,
-                    shift = At.Shift.AFTER
+                    shift = At.Shift.BEFORE
             )
     )
-    private void moveTotemOrigin(MatrixStack matrices, float tickProgress, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
+    private void moveTotemOrigin(PoseStack matrices, float tickProgress, SubmitNodeCollector queue, CallbackInfo ci, @Local(ordinal = 4) float k) {
+        Minecraft client = Minecraft.getInstance();
         Window window = client.getWindow();
-
+        matrices.setIdentity();
         float sliderX = Gui.get().xPosition;
         float sliderY = Gui.get().yPosition;
 
-        float screenWidth = window.getScaledWidth();
-        float screenHeight = window.getScaledHeight();
+        float screenWidth = window.getGuiScaledWidth();
+        float screenHeight = window.getGuiScaledHeight();
 
 
         float pixelX = (sliderX / 100f) * screenWidth;
@@ -127,14 +130,13 @@ public class InGameOverlayRendererMixin {
 
         float normalizedX = (pixelX - screenWidth / 2f) / (screenWidth / 2f);
         float normalizedY = (screenHeight / 2f - pixelY) / (screenHeight / 2f);
-
-        matrices.translate(normalizedX, normalizedY, 0);
-
-    }*/
-
+        System.out.println("X: " + normalizedX + " Y: " + normalizedY);
+        matrices.translate(normalizedX * 7.5F, normalizedY * 7.5F, -10.0F + 9.0F * Mth.sin((double)k));
+    }
 
 
-    @ModifyArgs(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;scale(FFF)V"))
+
+    @ModifyArgs(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
     private void modifyScaleArgs(Args args) {
         float scale = 0.8F;
 
@@ -146,18 +148,18 @@ public class InGameOverlayRendererMixin {
     }
 
 
-    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 0))
-    private boolean wrapRotationY(MatrixStack matrixStack, Quaternionfc rotation) {
+    @WrapWithCondition(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V", ordinal = 0))
+    private boolean wrapRotationY(PoseStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
     }
 
-    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 1))
-    private boolean wrapRotationX(MatrixStack matrixStack, Quaternionfc rotation) {
+    @WrapWithCondition(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V", ordinal = 1))
+    private boolean wrapRotationX(PoseStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
     }
 
-    @WrapWithCondition(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lorg/joml/Quaternionfc;)V", ordinal = 2))
-    private boolean wrapRotationZ(MatrixStack matrixStack, Quaternionfc rotation) {
+    @WrapWithCondition(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V", ordinal = 2))
+    private boolean wrapRotationZ(PoseStack matrixStack, Quaternionfc rotation) {
         return !Gui.get().disableRotations;
     }
 }
