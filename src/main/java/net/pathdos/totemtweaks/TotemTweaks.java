@@ -6,7 +6,7 @@ import com.terraformersmc.modmenu.ModMenu;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
@@ -23,11 +23,11 @@ public class TotemTweaks implements ModInitializer {
 
 	private void registerCommands() {
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
-			dispatcher.register(ClientCommandManager.literal("totemTweaks")
+			dispatcher.register(ClientCommands.literal("totemTweaks")
 					.executes(context -> openConfigScreen(context))
 			);
 
-			dispatcher.register(ClientCommandManager.literal("simulatePop")
+			dispatcher.register(ClientCommands.literal("simulatePop")
 					.executes(context -> {
 						simulatePop();
 						return Command.SINGLE_SUCCESS;
