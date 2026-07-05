@@ -22,6 +22,9 @@
     "main": [
       "net.pathdos.totemtweaks.TotemTweaks"
     ],
+    "client": [
+      "net.pathdos.totemtweaks.TotemTweaksClient"
+    ],
     "modmenu": [
       "net.pathdos.totemtweaks.config.ModMenu"
     ]

@@ -1,12 +1,12 @@
 {
   "required": true,
   "package": "net.pathdos.totemtweaks.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "mixins": [
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
     "ScreenEffectRendererMixin",
     "ItemInHandRendererMixin"
   ],
-  "client": [],
   "server": [],
   "injectors": {
     "defaultRequire": 1
