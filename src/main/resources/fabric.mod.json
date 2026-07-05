@@ -4,9 +4,9 @@
   "version": "${version}",
 
   "name": "Totem Tweaks",
-  "description": "Changeable totem sizes and extensive customizability of the pop animation.",
+  "description": "Changeable totem sizes and extensive customizability of the pop animation [updated by Darkshinobiiiii].",
   "authors": [
-    "Pathdos"
+    "Pathdos" , "Darkshinobiiiii"
   ],
   "contact": {
     "homepage": "https://modrinth.com/mod/cpvp",
@@ -35,7 +35,7 @@
     "fabric-api": "*",
     "modmenu": "*",
     "cloth-config": "*",
-    "minecraft": "~1.21.11",
+    "minecraft": "~26.2",
     "java": ">=21"
   }
 }
